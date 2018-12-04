@@ -8,17 +8,16 @@ import timeit
 image = cv2.imread('figure.jpg', cv2.IMREAD_GRAYSCALE)
 img = cv2.resize(image, (150, 150))
 
-
-def DDFTslow1(x):    # Discrete Fourier Transform 1-dimensional
-    """Compute the direct discrete Fourier Transform of the 1D array x"""
+"""Медленное прямое дискретное преобразование Фурье (ДПФ) для одномерного массива"""
+def DDFTslow1(x):
     x = np.asarray(x, dtype=complex)
-    N = x.shape[0]
-    n = np.arange(N)  # number of columns
-    k = n.reshape((N, 1))   # change column to a row
-    M = np.exp(-2j * np.pi * k * n / N)  # calculating the matrix of transformation using column n and row k
-    return np.dot(M, x)  # dot product
+    rows = x.shape[0]
+    cols = np.arange(rows)
+    row = cols.reshape((rows, 1))
+    M = np.exp(-2j * np.pi * row * cols / rows)  # Вычисление матрицы преобразования
+    return np.dot(M, x)  # Скалярное произведение
 
-
+"""Медленное прямое дискретное преобразование Фурье для двумерного массива"""
 def DDFTslow2(x):
     cols, rows = x.shape[0:2]
     dft = np.zeros((cols, rows), dtype=complex)
@@ -35,18 +34,18 @@ def DDFTslow2(x):
         dft[:, row] = yDFT
     return dft
 
-
+"""Медленное обратное дискретное преобразование Фурье для двумерного массива"""
 def IDFTslow2(x):
     cols, rows = x.shape[0:2]
     dft = np.zeros((cols, rows), dtype=complex)
 
-    for col in range(cols):  # computing dft for all columns
+    for col in range(cols):  # Вычисление ДПФ по строкам
         xModel = np.asarray(x[col, :], dtype=float)
         cv2.waitKey(500)
         xDFT = DDFTslow1(xModel)
         dft[col, :] = xDFT
 
-    for row in range(rows):  # computing dft for all rows
+    for row in range(rows):  # Вычисление ДПФ по столбцам
         yModel = np.conj(np.asarray(dft[:, row], dtype=complex))
         yDFT = DDFTslow1(yModel)
         dft[:, row] = yDFT / (cols * rows)
@@ -54,14 +53,23 @@ def IDFTslow2(x):
     print(dft)
     return dft
 
-# wrapped = wrapper(DDFTslow1, b)
-# print(timeit.timeit(wrapped, number=100))
-
 
 def wrapper(func, *args, **kwargs):
-        def wrapped():
-            return func(*args, **kwargs)
-        return wrapped
+    def wrapped():
+        return func(*args, **kwargs)
+
+    return wrapped
+
+b= np.array([1, 2, 132, 255],
+            [4, 100, 35, 2])
+
+
+
+wrapped = wrapper(DDFTslow2, b)
+print(timeit.timeit(wrapped, number=100))
+
+
+
 
 
 def DFFT1(x):
